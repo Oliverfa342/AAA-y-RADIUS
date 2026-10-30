@@ -1,0 +1,32 @@
+INFRAESTRUCTURA AAA + RADIUS — DIRECCIONAMIENTO Y CABLEADO
+Estudiante: Oliver Eliam Aquino Paulino (2024-1571)
+Red local: 10.15.71.128/29 / 255.255.255.248
+
+R1-AAA (Cisco 7200)
+ Fa0/0   10.15.71.132/29   --> SW1 Gi0/0 (VLAN 20)
+ RADIUS source interface: FastEthernet0/0
+
+SW1-AAA (Cisco IOSvL2)
+ Vlan20  10.15.71.131/29   --> Gestión
+ Gi0/0   access VLAN20     --> R1 Fa0/0
+ Gi0/3   access VLAN20     --> Cloud1 eth3
+ Default gateway 10.15.71.132
+ RADIUS source interface Vlan20
+
+Cloud1 (dentro de GNS3 VM)
+ eth3 = Adaptador de red 4 de GNS3 VM = VMware VMnet3
+ NO usar eth0, eth1, eth2 sin verificar correspondencia.
+
+Windows Server 2022 JUMP-SRV-01.redes.test
+ Ethernet1 10.15.71.130/29   --> Network Adapter 2 / VMware VMnet3 (sin gateway)
+ Ethernet0 192.168.53.10/24  --> VMnet8 NAT, gateway 192.168.53.2
+ NPS RADIUS UDP 1812 autenticación, UDP 1813 contabilidad
+ Domain: redes.test
+ Cliente NPS: R1-CISCO  10.15.71.132
+ Cliente NPS: SW1-CISCO 10.15.71.131
+
+Grupos: NIVEL_0, NIVEL_5, NIVEL_10
+Cuentas: radius0, radius5, radius10
+Administradores locales Cisco: adminlocal (R1), oliver (SW1).
+
+Los enlaces Cloud1 eth3 y VMware VMnet3 fueron necesarios para restaurar ping tras el apagón.

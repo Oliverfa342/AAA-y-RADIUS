@@ -1,0 +1,78 @@
+# R1-AAA · Secuencia de reconstrucción basada en el laboratorio (NO es show running-config literal).
+# Reemplazar RADIUS_KEY_PRIVADA y las contraseñas de administrador con valores privados.
+# En Tera Term, Paste delay per line 1000 ms si IOS junta líneas.
+# Pegar RSA POR SEPARADO. Primero verificar la conectividad/NPS y SSH antes de proteger consola.
+
+enable
+configure terminal
+hostname R1-AAA
+no ip domain lookup
+interface FastEthernet0/0
+ description CONEXION-SW1
+ ip address 10.15.71.132 255.255.255.248
+ no shutdown
+exit
+ip domain name redes.test
+username adminlocal privilege 15 secret R1_ADMIN_PRIVADA
+enable secret R1_ENABLE_PRIVADA
+aaa new-model
+aaa authentication login AAA-RADIUS group radius local
+aaa authentication login VTY-LOCAL local
+aaa authorization exec AAA-RADIUS group radius local
+aaa authorization exec VTY-AUTHZ local
+aaa accounting exec AAA-REGISTROS start-stop group radius
+aaa authorization console
+radius-server host 10.15.71.130 auth-port 1812 acct-port 1813 key RADIUS_KEY_PRIVADA
+radius-server timeout 5
+radius-server retransmit 2
+radius-server vsa send authentication
+ip radius source-interface FastEthernet0/0
+ip ssh version 2
+ip ssh time-out 30
+ip ssh authentication-retries 3
+line vty 0 4
+ login authentication VTY-LOCAL
+ authorization exec VTY-AUTHZ
+ transport input ssh
+ exec-timeout 10 0
+exit
+service timestamps log datetime msec
+logging on
+logging buffered 64000 informational
+end
+
+# Ejecutar por separado si no existen claves RSA:
+configure terminal
+crypto key generate rsa modulus 2048
+end
+
+# ANTES de cerrar consola, comprobar test aaa y SSH adminlocal (nivel 15).
+# Aplicar AAA de consola y auxiliar en el router tras verificar ese respaldo:
+configure terminal
+aaa authorization console
+line console 0
+ no privilege level
+ login authentication AAA-RADIUS
+ authorization exec AAA-RADIUS
+ accounting exec AAA-REGISTROS
+ logging synchronous
+exit
+line aux 0
+ no privilege level
+ login authentication AAA-RADIUS
+ authorization exec AAA-RADIUS
+ accounting exec AAA-REGISTROS
+ logging synchronous
+exit
+end
+
+# Tras validar el nuevo inicio de sesión por consola:
+copy running-config startup-config
+show startup-config
+
+# Notas de compatibilidad:
+# En el 7200 la sintaxis 'radius server NPS-R1 / address ipv4 ...' falló;
+# funcionó 'radius-server host ...' aunque apareciera advertencia de deprecación.
+# 'crypto key generate rsa' no se ejecuta si ya existen claves, salvo necesidad justificada.
+# Algunos ejemplos de esta reconstrucción representan pasos aplicados durante el laboratorio,
+# no garantizan que todas las opciones opcionales figuren en el running-config final.

@@ -1,0 +1,90 @@
+# SW1-AAA · Secuencia de reconstrucción basada en el laboratorio.
+# No es copia literal del running-config. Sustituir las claves privadas localmente.
+# Usar Tera Term con Paste delay per line 1000 ms. RSA aparte.
+
+enable
+configure terminal
+hostname SW1-AAA
+vlan 20
+ name RADIUS-MGMT
+exit
+interface GigabitEthernet0/0
+ description CONEXION-R1
+ switchport mode access
+ switchport access vlan 20
+ no shutdown
+exit
+interface GigabitEthernet0/3
+ description CONEXION-CLOUD-VMNET3
+ switchport mode access
+ switchport access vlan 20
+ no shutdown
+exit
+interface Vlan20
+ ip address 10.15.71.131 255.255.255.248
+ no shutdown
+exit
+ip default-gateway 10.15.71.132
+ip domain-name redes.test
+username oliver privilege 15 secret SW1_ADMIN_PRIVADA
+enable secret SW1_ENABLE_PRIVADA
+aaa new-model
+aaa authentication login AAA-RADIUS group radius local
+aaa authentication login VTY-LOCAL local
+aaa authorization exec AAA-RADIUS group radius local
+aaa authorization exec VTY-AUTHZ local
+aaa accounting exec AAA-REGISTROS start-stop group radius
+aaa authorization console
+radius server NPS-SW1
+ address ipv4 10.15.71.130 auth-port 1812 acct-port 1813
+ key RADIUS_KEY_PRIVADA
+exit
+ip radius source-interface Vlan20
+ip ssh version 2
+ip ssh time-out 30
+ip ssh authentication-retries 3
+line vty 0 4
+ login authentication VTY-LOCAL
+ authorization exec VTY-AUTHZ
+ transport input ssh
+ exec-timeout 10 0
+exit
+line vty 5 15
+ login authentication VTY-LOCAL
+ authorization exec VTY-AUTHZ
+ transport input ssh
+ exec-timeout 10 0
+exit
+service timestamps log datetime msec
+logging on
+logging buffered 64000 informational
+end
+
+# Generar claves RSA por separado:
+configure terminal
+crypto key generate rsa modulus 2048
+end
+
+# Probar RADIUS (radius0, radius5, radius10), SSH con usuario 'oliver' y privilegio 15.
+# SOLO DESPUÉS, proteger consola:
+configure terminal
+aaa authorization console
+line console 0
+ no privilege level
+ login authentication AAA-RADIUS
+ authorization exec AAA-RADIUS
+ accounting exec AAA-REGISTROS
+exit
+end
+
+# Si show line demuestra que esta imagen tiene auxiliar, aplicar opcionalmente line aux 0.
+# IOSvL2 observado NO acreditó una línea auxiliar disponible.
+# Guardar:
+copy running-config startup-config
+show startup-config
+
+# Nota: IOSvL2 rechazó 'radius-server host ...' y aceptó 'radius server NPS-SW1'.
+# Se probó 'radius-server vsa send authentication' durante el diagnóstico,
+# pero no figura en el running-config de SW1 compartido.
+# La configuración final observada conserva 'spanning-tree mode pvst' y servidores HTTP habilitados;
+# no se añaden cambios de seguridad no ejecutados por el estudiante.

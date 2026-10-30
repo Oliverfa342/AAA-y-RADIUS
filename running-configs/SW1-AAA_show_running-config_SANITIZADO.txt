@@ -1,0 +1,133 @@
+SW1-AAA#show privilege
+Current privilege level is 15
+SW1-AAA#show running-config
+Building configuration...
+
+Current configuration : 4002 bytes
+!
+! Last configuration change at 07:19:40 UTC Fri Oct 30 2026
+!
+version 15.2
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+service compress-config
+!
+hostname SW1-AAA
+!
+boot-start-marker
+boot-end-marker
+!
+!
+logging buffered 64000 informational
+enable secret 5 [REDACTADO: conservar solo en respaldo privado]
+!
+username oliver privilege 15 secret 5 [REDACTADO: conservar solo en respaldo privado]
+aaa new-model
+!
+!
+aaa authentication login AAA-RADIUS group radius local
+aaa authentication login VTY-LOCAL local
+aaa authorization console
+aaa authorization exec AAA-RADIUS group radius local
+aaa authorization exec VTY-AUTHZ local
+aaa accounting exec AAA-REGISTROS start-stop group radius
+!
+!
+!
+!
+!
+!
+aaa session-id common
+!
+!
+!
+!
+!
+!
+!
+ip domain-name redes.test
+ip cef
+no ipv6 cef
+!
+!
+spanning-tree mode pvst
+spanning-tree extend system-id
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0
+ description CONEXION-R1
+ switchport access vlan 20
+ switchport mode access
+ negotiation auto
+!
+interface GigabitEthernet0/1
+ negotiation auto
+!
+interface GigabitEthernet0/2
+ negotiation auto
+!
+interface GigabitEthernet0/3
+ description CONEXION-CLOUD-VMNET3
+ switchport access vlan 20
+ switchport mode access
+ negotiation auto
+!
+interface GigabitEthernet1/0
+ negotiation auto
+!
+interface GigabitEthernet1/1
+ negotiation auto
+!
+interface GigabitEthernet1/2
+ negotiation auto
+!
+interface GigabitEthernet1/3
+ negotiation auto
+!
+interface Vlan20
+ ip address 10.15.71.131 255.255.255.248
+!
+ip default-gateway 10.15.71.132
+ip forward-protocol nd
+!
+ip http server
+ip http secure-server
+!
+ip ssh time-out 30
+ip ssh version 2
+ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+!
+!
+ip radius source-interface Vlan20
+!
+!
+!
+!
+!
+radius server NPS-SW1
+ address ipv4 10.15.71.130 auth-port 1812 acct-port 1813
+ key [REDACTADO: conservar solo en respaldo privado]
+!
+!
+control-plane
+!
+banner exec ^C
+! FIN DE LA SALIDA COMPARTIDA: EL TEXTO SE CORTÓ DENTRO DEL BANNER.
+! Los datos de line con/VTY se documentaron en otras capturas, no se suponen parte de este extracto.
+! Secretos/hashes redaccionados; no es respaldo restaurable completo.
