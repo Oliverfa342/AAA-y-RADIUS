@@ -6,11 +6,19 @@
 **Plataforma:** GNS3, Cisco 7200, Cisco IOSvL2, VMware Workstation, Windows Server 2022, Active Directory y NPS  
 **Fecha:** 30 de octubre de 2026
 
+## Video demostrativo y documentación
+
+**[▶ Ver video de la práctica AAA + RADIUS](https://youtu.be/8TSI-s12XcI)**
+
+**[📄 Descargar documentación completa en PDF](Documentacion_AAA_RADIUS_Estilo_Infraestructura1_Oliver_Eliam.pdf)**
+
+El video presenta la infraestructura y las pruebas de autenticación RADIUS, administración SSH y registros. El PDF reúne los diagramas, capturas y anexos técnicos.
+
 ## Descripción
 
 Se implementó una infraestructura de autenticación, autorización y contabilidad (**AAA**) centralizada en Windows Server 2022 mediante **Network Policy Server (NPS)** como RADIUS. El router **R1-AAA** y el switch **SW1-AAA** utilizan el servidor para validar usuarios de Active Directory y recibir los niveles de privilegio **0, 5 y 10**. También se habilitó **SSH administrativo local** en los dos equipos Cisco.
 
-Este repositorio replica la organización de [Infraestructura-DMZ](https://github.com/Oliverfa342/Infraestructura-DMZ): explicación, diagramas, running-configs sanitizados, configuración reproducible, comandos y pruebas.
+El material se organiza en diagramas, configuraciones Cisco extraídas de las consolas, procedimientos de implementación, comandos de prueba y documentación técnica.
 
 ## Objetivos
 
@@ -85,7 +93,7 @@ sequenceDiagram
 
 **R1-AAA:** conexión `Fa0/0` al switch, RADIUS tradicional `radius-server host`, origen `Fa0/0`, listas AAA aplicadas en `line con 0` y `line aux 0`. Las VTY usan autenticación y autorización **locales** por SSH con `adminlocal` (nivel 15).
 
-**SW1-AAA:** `Gi0/0` y `Gi0/3` en VLAN 20, interfaz de gestión `Vlan20`; RADIUS mediante `radius server NPS-SW1`, origen `Vlan20`. VTY con SSH local para `oliver` (nivel 15), consola con listas AAA. No se debe afirmar que SW1 tiene auxiliar si no existe en `show line`.
+**SW1-AAA:** `Gi0/0` y `Gi0/3` en VLAN 20, interfaz de gestión `Vlan20`; RADIUS mediante `radius server NPS-SW1`, origen `Vlan20`. VTY con SSH local para `oliver` (nivel 15) y consola con listas AAA. La imagen IOSvL2 utilizada no ha acreditado una línea auxiliar de SW1.
 
 ## Pruebas evidenciadas
 
@@ -99,18 +107,22 @@ sequenceDiagram
 | SSH administrativo R1 | Acceso `adminlocal`, privilegio 15, SSH v2 |
 | SSH administrativo SW1 | Acceso `oliver`, privilegio 15 |
 | NPS | Eventos 6272 y 6273 en Seguridad |
-| Autorización en nueva consola | Configuración de listas documentada; la captura del nivel efectivo de cada sesión no figura completa en los extractos proporcionados |
 
-**Importante:** el resultado `test aaa` confirma el atributo de NPS, pero por sí solo no comprueba que cada sesión aplique efectivamente el nivel de privilegio. Los resultados de configuración se separan de los resultados que muestran las capturas.
+**Alcance de la evidencia:** `test aaa` demuestra la autenticación y el atributo enviado por NPS. Las capturas administrativas de `show privilege` muestran nivel 15. La aplicación de niveles 0/5/10 en sesiones de consola requiere una captura de la sesión correspondiente; por eso no se presenta como verificación independiente en esta tabla.
 
 ## Archivos
+
+### Documento de entrega
+
+- [Informe PDF con diagramas y capturas](Documentacion_AAA_RADIUS_Estilo_Infraestructura1_Oliver_Eliam.pdf)
+- [Video de demostración](https://youtu.be/8TSI-s12XcI)
 
 ### Running-config entregados (sanitizados)
 
 - [R1-AAA — extracto de show running-config](running-configs/R1-AAA_show_running-config_SANITIZADO.txt)
 - [SW1-AAA — extracto de show running-config](running-configs/SW1-AAA_show_running-config_SANITIZADO.txt)
 
-**Procedencia:** transcripciones reales proporcionadas por el estudiante el 30/10/2026. **Las salidas recibidas están truncadas al final**, especialmente SW1 tras `banner exec`. Se preservan todas las líneas recibidas salvo secretos/hashes redaccionados. NO son backups restaurables completos.
+**Procedencia:** salidas reales de los equipos, compartidas el 30/10/2026. Los archivos conservan las líneas recibidas, excepto los secretos. El extracto de SW1 termina durante `banner exec` y el de R1 también es parcial; para restaurar una configuración completa se requiere un respaldo privado adicional.
 
 ### Configuración y comandos de recuperación
 
